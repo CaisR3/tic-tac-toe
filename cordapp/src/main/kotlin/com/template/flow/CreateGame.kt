@@ -55,7 +55,7 @@ object CreateGameFlow {
             // Stage 1.
             progressTracker.currentStep = GENERATING_TRANSACTION
             // Generate an unsigned transaction.
-            val ticTacToeState = TicTacToeState(serviceHub.myInfo.legalIdentities.first(), otherParty);
+            val ticTacToeState = TicTacToeState(serviceHub.myInfo.legalIdentities.first(), otherParty, otherParty);
             val txCommand = Command(TicTacToeContract.Commands.Create(), ticTacToeState.participants.map { it.owningKey })
             val txBuilder = TransactionBuilder(notary)
                     .addOutputState(ticTacToeState, TICTACTOE_CONTRACT_ID)

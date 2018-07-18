@@ -60,8 +60,6 @@ configurations {
 
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
-    testCompile "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
-    testCompile "junit:junit:$junit_version"
 
     // Corda integration dependencies
     cordaCompile "$corda_release_group:corda-core:$corda_release_version"
@@ -73,7 +71,9 @@ dependencies {
     cordaRuntime "$corda_release_group:corda:$corda_release_version"
     cordaRuntime "$corda_release_group:corda-webserver:$corda_release_version"
 
-    testCompile "$corda_release_group:corda-node-driver:$corda_release_version"
+    testCompile "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
+    testCompile "junit:junit:$junit_version"
+    testCompile "net.corda:corda-node-driver:$corda_release_version"
 
     // CorDapp dependencies
     // Specify your CorDapp's dependencies below, including dependent CorDapps.
