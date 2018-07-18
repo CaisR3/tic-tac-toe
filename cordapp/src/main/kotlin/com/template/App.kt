@@ -12,40 +12,6 @@ import javax.ws.rs.Produces
 import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 
-// *****************
-// * API Endpoints *
-// *****************
-@Path("template")
-class TemplateApi(val rpcOps: CordaRPCOps) {
-    // Accessible at /api/template/templateGetEndpoint.
-    @GET
-    @Path("templateGetEndpoint")
-    @Produces(MediaType.APPLICATION_JSON)
-    fun templateGetEndpoint(): Response {
-        return Response.ok("Template GET endpoint.").build()
-    }
-}
-
-// *********
-// * Flows *
-// *********
-@InitiatingFlow
-@StartableByRPC
-class Initiator : FlowLogic<Unit>() {
-    @Suspendable
-    override fun call() {
-        // Flow implementation goes here
-    }
-}
-
-@InitiatedBy(Initiator::class)
-class Responder(val counterpartySession: FlowSession) : FlowLogic<Unit>() {
-    @Suspendable
-    override fun call() {
-        // Flow implementation goes here
-    }
-}
-
 // ***********
 // * Plugins *
 // ***********

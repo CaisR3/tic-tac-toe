@@ -90,7 +90,7 @@ object CreateGameFlow {
         override fun call(): SignedTransaction {
             val signTransactionFlow = object : SignTransactionFlow(otherPartyFlow) {
                 override fun checkTransaction(stx: SignedTransaction) = requireThat {
-                    stx.verify(serviceHub);
+                    //stx.verify(serviceHub);
 
                     val output = stx.tx.outputs.single().data
                     "This must be a TicTacToe transaction." using (output is TicTacToeState)

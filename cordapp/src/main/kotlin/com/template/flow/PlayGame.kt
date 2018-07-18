@@ -107,11 +107,6 @@ object PlayGameFlow {
             val signTransactionFlow = object : SignTransactionFlow(otherPartyFlow) {
                 override fun checkTransaction(stx: SignedTransaction) = requireThat {
                     stx.verify(serviceHub);
-
-                    val output = stx.tx.outputs.single().data
-                    "This must be a TicTacToe transaction." using (output is TicTacToeState)
-                    val ticTacToe = output as TicTacToeState
-                    //"I won't accept IOUs with a value over 100." using (iou.value <= 100)
                 }
             }
 

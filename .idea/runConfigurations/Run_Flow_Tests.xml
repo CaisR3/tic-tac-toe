@@ -18,6 +18,8 @@
     </option>
     <envs />
     <patterns />
-    <method />
+    <method>
+      <option name="Make" enabled="false" />
+    </method>
   </configuration>
 </component>

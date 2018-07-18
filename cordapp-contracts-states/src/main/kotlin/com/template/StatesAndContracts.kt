@@ -39,6 +39,7 @@ class TicTacToeContract : Contract {
                     "Move has been changed to next player" using (input.activePlayer != output.activePlayer)
                     "A move has to be made" using ( newPlayer1Plays > previousPlayer1Plays || newPlayer2Plays > previousPlayer2Plays)
                     "Move has been made by the right player" using (if(input.activePlayer == input.player1) newPlayer1Plays == newPlayer2Plays else newPlayer1Plays > newPlayer2Plays)
+                    //"Game appropriately marked as complete"
                 }
             }
 
