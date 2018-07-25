@@ -55,7 +55,7 @@ object CreateGameFlow {
             // Stage 1.
             progressTracker.currentStep = GENERATING_TRANSACTION
             // Generate an unsigned transaction.
-            val ticTacToeState = TicTacToeState(serviceHub.myInfo.legalIdentities.first(), otherParty, otherParty);
+            val ticTacToeState = TicTacToeState(serviceHub.myInfo.legalIdentities.first(), otherParty);
             val txCommand = Command(TicTacToeContract.Commands.Create(), ticTacToeState.participants.map { it.owningKey })
             val txBuilder = TransactionBuilder(notary)
                     .addOutputState(ticTacToeState, TICTACTOE_CONTRACT_ID)
@@ -94,8 +94,6 @@ object CreateGameFlow {
 
                     val output = stx.tx.outputs.single().data
                     "This must be a TicTacToe transaction." using (output is TicTacToeState)
-                    val ticTacToe = output as TicTacToeState
-                    //"I won't accept IOUs with a value over 100." using (iou.value <= 100)
                 }
             }
 

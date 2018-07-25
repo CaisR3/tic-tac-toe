@@ -11,7 +11,7 @@ class ContractTests {
 
     @Test
     fun `create game`() {
-        val game = createGame(PLAYER_1.party, PLAYER_2.party)
+        val game = TicTacToeState(PLAYER_1.party, PLAYER_2.party)
         ledgerServices.ledger {
             transaction("Player1 creates game") {
                 output(TICTACTOE_CONTRACT_ID, game)
@@ -24,7 +24,7 @@ class ContractTests {
 
     @Test
     fun `create and play game`() {
-        val game = createGame(PLAYER_1.party, PLAYER_2.party)
+        val game = TicTacToeState(PLAYER_1.party, PLAYER_2.party)
         ledgerServices.ledger {
             transaction("Player1 creates game") {
                 output(TICTACTOE_CONTRACT_ID, "new game", game)

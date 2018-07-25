@@ -2,17 +2,21 @@ package com.template
 
 import com.template.flow.CreateGameFlow
 import com.template.flow.PlayGameFlow
-import net.corda.core.flows.FlowException
+import com.template2.flow.PlayGameEngineFlow
+import net.corda.core.node.services.queryBy
 import net.corda.core.utilities.getOrThrow
+import net.corda.finance.contracts.asset.Cash
 import net.corda.testing.node.MockNetwork
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
-class FlowTests {
+class EngineFlowTests {
 
-    private val network = MockNetwork(listOf("com.template", "net.corda.finance.contracts.asset"))
+    private val network = MockNetwork(listOf("com.template", "com.template2", "net.corda.finance.contracts.asset", "net.corda.finance.schemas"))
+
     private val a = network.createPartyNode()
     private val b = network.createPartyNode()
 
@@ -20,9 +24,8 @@ class FlowTests {
     fun setup() {
         network.runNetwork()
 
-        listOf(a, b).forEach {
-            it.registerInitiatedFlow(PlayGameFlow.Acceptor::class.java)
-        }
+        a.registerInitiatedFlow(PlayGameFlow.Acceptor::class.java)
+        b.registerInitiatedFlow(PlayGameEngineFlow.Acceptor::class.java)
 
         network.runNetwork()
     }
@@ -97,7 +100,7 @@ class FlowTests {
     }
 
     @Test
-    fun `valid back and forth game play flow doesn't throw an exception`() {
+    fun `winning game results in cash being received`() {
 
         // create game first
         val createFlow = CreateGameFlow.Initiator(b.info.legalIdentities.first())
@@ -105,44 +108,30 @@ class FlowTests {
         network.runNetwork()
         val gameStx = createFuture.getOrThrow()
 
-        // player1 plays game
+        // play winning game
         val game = gameStx.coreTransaction.outputStates.first() as TicTacToeState
-        val move = intArrayOf(0,0)
-        val playFlow = PlayGameFlow.Initiator(game.linearId, move)
-        val playFuture = a.startFlow(playFlow)
+        val playFlow1 = PlayGameFlow.Initiator(game.linearId, intArrayOf(2,0))
+        val playFuture1 = a.startFlow(playFlow1)
         network.runNetwork()
-        playFuture.getOrThrow()
 
-        // player2 plays game
-        val move2 = intArrayOf(1,1)
-        val playFlow2 = PlayGameFlow.Initiator(game.linearId, move2)
-        val playFuture2 = b.startFlow(playFlow2)
+        playFuture1.getOrThrow()
+
+        val playFlow2 = PlayGameFlow.Initiator(game.linearId, intArrayOf(2,1))
+        val playFuture2 = a.startFlow(playFlow2)
         network.runNetwork()
+
         playFuture2.getOrThrow()
-    }
 
-    @Test(expected = FlowException::class)
-    fun `invalid back and forth game play flow throws an exception`() {
-
-        // create game first
-        val createFlow = CreateGameFlow.Initiator(b.info.legalIdentities.first())
-        val createFuture = a.startFlow(createFlow)
+        val playFlow3 = PlayGameFlow.Initiator(game.linearId, intArrayOf(2,2))
+        val playFuture3 = a.startFlow(playFlow3)
         network.runNetwork()
-        val gameStx = createFuture.getOrThrow()
 
-        // player1 plays game
-        val game = gameStx.coreTransaction.outputStates.first() as TicTacToeState
-        val move = intArrayOf(0,0)
-        val playFlow = PlayGameFlow.Initiator(game.linearId, move)
-        val playFuture = a.startFlow(playFlow)
-        network.runNetwork()
-        playFuture.getOrThrow()
+        val stx = playFuture3.getOrThrow()
 
-        // player2 plays game
-        // Try and make same move as player 1
-        val playFlow2 = PlayGameFlow.Initiator(game.linearId, move)
-        val playFuture2 = b.startFlow(playFlow2)
         network.runNetwork()
-        playFuture2.getOrThrow()
+
+        // We check the recorded transaction in both vaults.
+        val cashStateA = a.services.vaultService.queryBy<Cash.State>().states.single()
+        val cashStateB = b.services.vaultService.queryBy<Cash.State>().states.single()
     }
 }

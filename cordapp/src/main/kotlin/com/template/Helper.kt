@@ -13,9 +13,13 @@ import java.util.concurrent.ThreadLocalRandom
 
 fun ServiceHub.firstNotary() = networkMapCache.notaryIdentities.first()
 
-inline fun <reified T : ContractState> ServiceHub.getStateAndRefByLinearId(linearId: UniqueIdentifier): StateAndRef<T> {
+inline fun <reified T : ContractState> ServiceHub.getStateAndRefByLinearId(linearId: UniqueIdentifier): StateAndRef<T>? {
     val queryCriteria = QueryCriteria.LinearStateQueryCriteria(linearId = listOf(linearId))
-    return vaultService.queryBy<T>(queryCriteria).states.single()
+    return vaultService.queryBy<T>(queryCriteria).states.singleOrNull()
 }
 
 fun ClosedRange<Int>.random() = ThreadLocalRandom.current().nextInt((endInclusive + 1) - start) + start
+
+fun noMoreMoves(board: Array<Array<Int>>): Boolean {
+    return !board.flatten().any { it == -1 }
+}

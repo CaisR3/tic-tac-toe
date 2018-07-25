@@ -21,14 +21,14 @@ class TemplateWebPlugin : WebServerPluginRegistry {
     //A list of directories in the resources directory that will be served by Jetty under /web.
     // This template's web frontend is accessible at /web/template.
     override val staticServeDirs: Map<String, String> = mapOf(
-        // This will serve the templateWeb directory in resources to /web/template
-        "template" to javaClass.classLoader.getResource("templateWeb").toExternalForm()
+        // This will serve the templateWeb directory in resources to /web/tictactoe
+        "tictactoe" to javaClass.classLoader.getResource("templateWeb").toExternalForm()
     )
 }
 
 // Serialization whitelist.
 class TemplateSerializationWhitelist : SerializationWhitelist {
-    override val whitelist: List<Class<*>> = listOf(TemplateData::class.java)
+    override val whitelist: List<Class<*>> = listOf(TemplateData::class.java, Integer::class.java)
 }
 
 // This class is not annotated with @CordaSerializable, so it must be added to the serialization whitelist, above, if
