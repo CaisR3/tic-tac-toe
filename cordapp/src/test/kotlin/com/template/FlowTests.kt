@@ -3,6 +3,7 @@ package com.template
 import com.template.flow.CreateGameFlow
 import com.template.flow.PlayGameFlow
 import net.corda.core.flows.FlowException
+import net.corda.core.node.services.queryBy
 import net.corda.core.utilities.getOrThrow
 import net.corda.testing.node.MockNetwork
 import org.junit.After
@@ -97,7 +98,7 @@ class FlowTests {
     }
 
     @Test
-    fun `valid back and forth game play flow doesn't throw an exception`() {
+    fun `valid back and forth game play flow doesn't throw an exception and no winner`() {
 
         // create game first
         val createFlow = CreateGameFlow.Initiator(b.info.legalIdentities.first())
@@ -119,6 +120,20 @@ class FlowTests {
         val playFuture2 = b.startFlow(playFlow2)
         network.runNetwork()
         playFuture2.getOrThrow()
+
+        // player1 plays game
+        val move3 = intArrayOf(2,2)
+        val playFlow3 = PlayGameFlow.Initiator(game.linearId, move3)
+        val playFuture3 = a.startFlow(playFlow3)
+        network.runNetwork()
+        playFuture3.getOrThrow()
+
+        val state = a.services.vaultService.queryBy<TicTacToeState>().states.single().state.data
+        assert(state.board[0][0] == 0)
+        assert(state.board[1][1] == 1)
+        assert(state.board[2][2] == 0)
+        assert(state.complete == false)
+        assert(state.winner == null)
     }
 
     @Test(expected = FlowException::class)

@@ -61,4 +61,19 @@ class ContractTests {
             }
         }
     }
+
+    @Test
+    fun `winning game check`() {
+        val gameState = TicTacToeState(PLAYER_1.party, PLAYER_2.party)
+        var winner = isWinningPattern(gameState.board)
+        assert(winner == false)
+
+        var board = arrayOf(arrayOf(1, 1, 1), arrayOf(-1, -1, -1), arrayOf(-1, -1, -1))
+        winner = isWinningPattern(board)
+        assert(winner == true)
+
+        board = arrayOf(arrayOf(1, 0, 1), arrayOf(-1, -1, -1), arrayOf(-1, -1, -1))
+        winner = isWinningPattern(board)
+        assert(winner == false)
+    }
 }

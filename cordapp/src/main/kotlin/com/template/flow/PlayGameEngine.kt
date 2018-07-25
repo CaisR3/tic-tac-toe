@@ -14,7 +14,7 @@ import net.corda.finance.contracts.asset.Cash
 
 object PlayGameEngineFlow {
 
-    //@InitiatedBy(PlayGameFlow.Initiator::class)
+    @InitiatedBy(PlayGameFlow.Initiator::class)
     class Acceptor(val otherPartyFlow: FlowSession) : FlowLogic<SignedTransaction>() {
         @Suspendable
         override fun call(): SignedTransaction {

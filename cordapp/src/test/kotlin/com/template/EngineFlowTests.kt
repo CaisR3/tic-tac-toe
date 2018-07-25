@@ -3,6 +3,7 @@ package com.template
 import com.template.flow.CreateGameFlow
 import com.template.flow.PlayGameFlow
 import com.template2.flow.PlayGameEngineFlow
+import net.corda.core.contracts.ContractState
 import net.corda.core.node.services.queryBy
 import net.corda.core.utilities.getOrThrow
 import net.corda.finance.contracts.asset.Cash
@@ -131,7 +132,7 @@ class EngineFlowTests {
         network.runNetwork()
 
         // We check the recorded transaction in both vaults.
-        val cashStateA = a.services.vaultService.queryBy<Cash.State>().states.single()
-        val cashStateB = b.services.vaultService.queryBy<Cash.State>().states.single()
+        val cashStateA = a.services.vaultService.queryBy<ContractState>().states
+        val cashStateB = b.services.vaultService.queryBy<ContractState>().states
     }
 }

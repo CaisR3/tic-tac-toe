@@ -85,8 +85,12 @@ fun isWinningPattern(board: Array<Array<Int>>): Boolean {
     if(board.all { it[2] == 0 } || board.all { it[2] == 1 }) return true
 
     // diagonals
-    if ((0..2).all { board[it][it] == 0 || board[it][it] == 1 }) return true
-    if ((0..2).all { board[2 - it][it] == 0 || board[2 - it][it] == 1 }) return true
+    if ((0..2).all { board[it][it] == 0 } || (0..2).all { board[it][it] == 1 }) return true
+    if ((0..2).all { board[2 - it][it] == 0 } || (0..2).all { board[2 - it][it] == 1 }) return true
 
     return false
+}
+
+fun noMoreMoves(board: Array<Array<Int>>): Boolean {
+    return !board.flatten().any { it == -1 }
 }

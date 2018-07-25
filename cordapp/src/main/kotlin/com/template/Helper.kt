@@ -19,7 +19,3 @@ inline fun <reified T : ContractState> ServiceHub.getStateAndRefByLinearId(linea
 }
 
 fun ClosedRange<Int>.random() = ThreadLocalRandom.current().nextInt((endInclusive + 1) - start) + start
-
-fun noMoreMoves(board: Array<Array<Int>>): Boolean {
-    return !board.flatten().any { it == -1 }
-}

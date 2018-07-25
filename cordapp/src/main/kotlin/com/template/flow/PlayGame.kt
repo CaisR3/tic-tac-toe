@@ -69,8 +69,9 @@ object PlayGameFlow {
             currentStateOfPlay[move[0]][move[1]] = ourMarker;
 
             //If our next play is a winning move, we mark the game as complete and set ourselves as the winner
-            val complete = isWinningPattern(currentStateOfPlay)
-            val winner = if(complete) serviceHub.myInfo.legalIdentities[0] else null
+            val completeWithWinner = isWinningPattern(currentStateOfPlay)
+            val complete = noMoreMoves(currentStateOfPlay) || completeWithWinner
+            val winner = if(completeWithWinner) serviceHub.myInfo.legalIdentities[0] else null
 
             // Let's flip who's go it is next and apply play
             val ticTacToeStateWithPlay = ticTacToeState.copy(activePlayer = otherPlayer, board = currentStateOfPlay, complete = complete, winner = winner)
