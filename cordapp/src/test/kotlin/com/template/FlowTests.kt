@@ -1,7 +1,8 @@
 package com.template
 
-import com.template.flow.CreateGameFlow
-import com.template.flow.PlayGameFlow
+import shared.com.template.flow.CreateGameFlow
+import shared.com.template.flow.PlayGameFlow
+import com.template.flow.PlayGameFlowResponder
 import net.corda.core.flows.FlowException
 import net.corda.core.node.services.queryBy
 import net.corda.core.utilities.getOrThrow
@@ -13,7 +14,7 @@ import kotlin.test.assertEquals
 
 class FlowTests {
 
-    private val network = MockNetwork(listOf("com.template", "net.corda.finance.contracts.asset"))
+    private val network = MockNetwork(listOf("com.template","shared.com.template", "net.corda.finance.contracts.asset"))
     private val a = network.createPartyNode()
     private val b = network.createPartyNode()
 
@@ -22,7 +23,8 @@ class FlowTests {
         network.runNetwork()
 
         listOf(a, b).forEach {
-            it.registerInitiatedFlow(PlayGameFlow.Acceptor::class.java)
+            it.registerInitiatedFlow(PlayGameFlowResponder.Acceptor::class.java)
+            it.registerInitiatedFlow(CreateGameFlow.Acceptor::class.java)
         }
 
         network.runNetwork()
@@ -71,7 +73,7 @@ class FlowTests {
         // play game
         val game = gameStx.coreTransaction.outputStates.first() as TicTacToeState
         val move = intArrayOf(0,0)
-        val playFlow = PlayGameFlow.Initiator(game.linearId, move)
+        val playFlow = PlayGameFlow.PlayGameInitiator(game.linearId, move)
         val playFuture = a.startFlow(playFlow)
         network.runNetwork()
 
@@ -109,21 +111,21 @@ class FlowTests {
         // player1 plays game
         val game = gameStx.coreTransaction.outputStates.first() as TicTacToeState
         val move = intArrayOf(0,0)
-        val playFlow = PlayGameFlow.Initiator(game.linearId, move)
+        val playFlow = PlayGameFlow.PlayGameInitiator(game.linearId, move)
         val playFuture = a.startFlow(playFlow)
         network.runNetwork()
         playFuture.getOrThrow()
 
         // player2 plays game
         val move2 = intArrayOf(1,1)
-        val playFlow2 = PlayGameFlow.Initiator(game.linearId, move2)
+        val playFlow2 = PlayGameFlow.PlayGameInitiator(game.linearId, move2)
         val playFuture2 = b.startFlow(playFlow2)
         network.runNetwork()
         playFuture2.getOrThrow()
 
         // player1 plays game
         val move3 = intArrayOf(2,2)
-        val playFlow3 = PlayGameFlow.Initiator(game.linearId, move3)
+        val playFlow3 = PlayGameFlow.PlayGameInitiator(game.linearId, move3)
         val playFuture3 = a.startFlow(playFlow3)
         network.runNetwork()
         playFuture3.getOrThrow()
@@ -148,14 +150,14 @@ class FlowTests {
         // player1 plays game
         val game = gameStx.coreTransaction.outputStates.first() as TicTacToeState
         val move = intArrayOf(0,0)
-        val playFlow = PlayGameFlow.Initiator(game.linearId, move)
+        val playFlow = PlayGameFlow.PlayGameInitiator(game.linearId, move)
         val playFuture = a.startFlow(playFlow)
         network.runNetwork()
         playFuture.getOrThrow()
 
         // player2 plays game
         // Try and make same move as player 1
-        val playFlow2 = PlayGameFlow.Initiator(game.linearId, move)
+        val playFlow2 = PlayGameFlow.PlayGameInitiator(game.linearId, move)
         val playFuture2 = b.startFlow(playFlow2)
         network.runNetwork()
         playFuture2.getOrThrow()

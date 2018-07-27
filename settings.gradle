@@ -1,2 +1,4 @@
+include 'shared'
 include 'cordapp'
+include 'cordapp-bot'
 include 'cordapp-contracts-states'

@@ -1,28 +1,25 @@
-package com.template.flow
+package shared.com.template.flow
 
 import co.paralleluniverse.fibers.Suspendable
-import com.template.TICTACTOE_CONTRACT_ID
-import com.template.TicTacToeContract
-import com.template.TicTacToeState
+import com.template.*
 import net.corda.core.contracts.Command
-import net.corda.core.contracts.requireThat
+import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.flows.*
-import net.corda.core.identity.Party
 import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.TransactionBuilder
 import net.corda.core.utilities.ProgressTracker
 import net.corda.core.utilities.ProgressTracker.Step
 
-object CreateGameFlow {
+object PlayGameFlow {
     @InitiatingFlow
     @StartableByRPC
-    class Initiator(val otherParty: Party) : FlowLogic<SignedTransaction>() {
+    class PlayGameInitiator(val linearId: UniqueIdentifier, val move: IntArray) : FlowLogic<SignedTransaction>() {
         /**
          * The progress tracker checkpoints each stage of the flow and outputs the specified messages when each
          * checkpoint is reached in the code. See the 'progressTracker.currentStep' expressions within the call() function.
          */
         companion object {
-            object GENERATING_TRANSACTION : Step("Generating transaction based on new IOU.")
+            object GENERATING_TRANSACTION : Step("Generating transaction based on new play.")
             object VERIFYING_TRANSACTION : Step("Verifying contract constraints.")
             object SIGNING_TRANSACTION : Step("Signing transaction with our private key.")
             object GATHERING_SIGS : Step("Gathering the counterparty's signature.") {
@@ -55,10 +52,30 @@ object CreateGameFlow {
             // Stage 1.
             progressTracker.currentStep = GENERATING_TRANSACTION
             // Generate an unsigned transaction.
-            val ticTacToeState = TicTacToeState(serviceHub.myInfo.legalIdentities.first(), otherParty);
-            val txCommand = Command(TicTacToeContract.Commands.Create(), ticTacToeState.participants.map { it.owningKey })
+            val ticTacToeStateAndRef = serviceHub.getStateAndRefByLinearId<TicTacToeState>(linearId) ?: throw FlowException("No game found with provided id");
+
+            val ticTacToeState = ticTacToeStateAndRef.state.data
+            val txCommand = Command(TicTacToeContract.Commands.Play(), ticTacToeState.participants.map { it.owningKey })
+
+            // are we player1 or player2
+            val otherPlayer = if (ticTacToeState.player1 == ticTacToeState.activePlayer) ticTacToeState.player2 else ticTacToeState.player1
+            val ourMarker = if (otherPlayer == ticTacToeState.player2) 0 else 1
+
+            val currentStateOfPlay = ticTacToeState.board
+            // move is expressed as row, column
+            currentStateOfPlay[move[0]][move[1]] = ourMarker;
+
+            //If our next play is a winning move, we mark the game as complete and set ourselves as the winner
+            val completeWithWinner = isWinningPattern(currentStateOfPlay)
+            val complete = noMoreMoves(currentStateOfPlay) || completeWithWinner
+            val winner = if(completeWithWinner) serviceHub.myInfo.legalIdentities[0] else null
+
+            // Let's flip who's go it is next and apply play
+            val ticTacToeStateWithPlay = ticTacToeState.copy(activePlayer = otherPlayer, board = currentStateOfPlay, complete = complete, winner = winner)
+
             val txBuilder = TransactionBuilder(notary)
-                    .addOutputState(ticTacToeState, TICTACTOE_CONTRACT_ID)
+                    .addInputState(ticTacToeStateAndRef)
+                    .addOutputState(ticTacToeStateWithPlay, TICTACTOE_CONTRACT_ID)
                     .addCommand(txCommand)
 
             // Stage 2.
@@ -74,6 +91,7 @@ object CreateGameFlow {
             // Stage 4.
             progressTracker.currentStep = GATHERING_SIGS
             // Send the state to the counterparty, and receive it back with their signature.
+            val otherParty = ticTacToeStateWithPlay.activePlayer
             val otherPartyFlow = initiateFlow(otherParty)
             val fullySignedTx = subFlow(CollectSignaturesFlow(partSignedTx, setOf(otherPartyFlow), GATHERING_SIGS.childProgressTracker()))
 
@@ -81,23 +99,6 @@ object CreateGameFlow {
             progressTracker.currentStep = FINALISING_TRANSACTION
             // Notarise and record the transaction in both parties' vaults.
             return subFlow(FinalityFlow(fullySignedTx, FINALISING_TRANSACTION.childProgressTracker()))
-        }
-    }
-
-    @InitiatedBy(Initiator::class)
-    class Acceptor(val otherPartyFlow: FlowSession) : FlowLogic<SignedTransaction>() {
-        @Suspendable
-        override fun call(): SignedTransaction {
-            val signTransactionFlow = object : SignTransactionFlow(otherPartyFlow) {
-                override fun checkTransaction(stx: SignedTransaction) = requireThat {
-                    //stx.verify(serviceHub);
-
-                    val output = stx.tx.outputs.single().data
-                    "This must be a TicTacToe transaction." using (output is TicTacToeState)
-                }
-            }
-
-            return subFlow(signTransactionFlow)
         }
     }
 }

@@ -1,7 +1,7 @@
 package com.template
 
-import com.template.flow.CreateGameFlow
-import com.template.flow.PlayGameFlow
+import shared.com.template.flow.CreateGameFlow
+import shared.com.template.flow.PlayGameFlow
 import net.corda.core.contracts.Amount
 import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.identity.CordaX500Name
@@ -144,7 +144,7 @@ class TemplateApi(val rpcOps: CordaRPCOps) {
         return try {
             val move = intArrayOf(row, column)
             val linearId = UniqueIdentifier.fromString(id)
-            val flowHandle = rpcOps.startFlow(PlayGameFlow::Initiator, linearId, move)
+            val flowHandle = rpcOps.startFlow(PlayGameFlow::PlayGameInitiator, linearId, move)
             val flowResult = flowHandle.returnValue.getOrThrow()
             // Return the response.
             Response.status(Response.Status.CREATED).entity("Move played: ${flowResult.tx.outputsOfType<TicTacToeState>().single()}.").build()
